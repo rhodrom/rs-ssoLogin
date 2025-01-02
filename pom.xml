@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>uyun.whale</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.5.0</version>
+  </parent>
+
+  <groupId>com.uyun</groupId>
+  <artifactId>rs-ssoLogin</artifactId>
+  <version>2.0.18.0</version>
+  <packaging>jar</packaging>
+
+
+  <!--考虑到window 和linux环境 npm命令格式的问题，使用maven的profile实现动态指定命令-->
+  <profiles>
+    <profile>
+      <id>window</id>
+      <properties>
+        <yarn>window</yarn>
+      </properties>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+
+    </profile>
+    <profile>
+      <id>linux</id>
+      <properties>
+        <yarn>linux</yarn>
+      </properties>
+    </profile>
+  </profiles>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <mybatis.version>3.5.11</mybatis.version>
+    <mybatis-spring.version>2.0.5</mybatis-spring.version>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>uyun.whale</groupId>
+      <artifactId>distributed-config</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>uyun.earth</groupId>
+      <artifactId>userrole-api</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>uyun.whale.security</groupId>
+      <artifactId>auth-serviceapi</artifactId>
+      <version>${auth.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-config</artifactId>
+      <version>5.3.4.RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-web</artifactId>
+      <version>5.3.4.RELEASE</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>27.1-jre</version>
+    </dependency>
+    <!--        <dependency>-->
+    <!--            <groupId>uyun.bird.tenant</groupId>-->
+    <!--            <artifactId>tenant-api</artifactId>-->
+    <!--            <version>2.1.0-SNAPSHOT</version>-->
+    <!--        </dependency>-->
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-pool2</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.javakaffee</groupId>
+      <artifactId>kryo-serializers</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+      <version>1.2.83</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-all</artifactId>
+      <version>5.8.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+
+    <!--suppress VulnerableLibrariesLocal -->
+    <dependency>
+      <groupId>uyun.whale</groupId>
+      <artifactId>own-consumer-spring-boot-starter</artifactId>
+    </dependency>
+
+    <!--引入数据库驱动包 -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>druid-spring-boot-starter</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.dtflys.forest</groupId>
+      <artifactId>forest-spring-boot-starter</artifactId>
+      <version>1.5.30</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <!--            <exclusions>-->
+      <!--                <exclusion>-->
+      <!--                    <groupId>org.springframework.boot</groupId>-->
+      <!--                    <artifactId>spring-boot-starter-tomcat</artifactId>-->
+      <!--                </exclusion>-->
+      <!--            </exclusions>-->
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.8.1</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <finalName>rs-ssoLogin-${project.version}</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/java</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>build-bin</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+              <finalName>rs-ssoLogin-V2.0.R18-all</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <attach>false</attach>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <!-- linux 解析json工具 -->
+                  <groupId>uyun.whale</groupId>
+                  <artifactId>util-shell</artifactId>
+                  <type>tar.gz</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/util-shell</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

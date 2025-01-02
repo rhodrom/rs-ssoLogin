@@ -1,0 +1,181 @@
+#use archetype verison: 1.4.9
+
+server:
+  port: 6606
+  tomcat:
+    max-http-post-size: -1
+
+# 自定义业务配置项
+biz:
+  app:
+    # 应用编码（全大写、首字母大写或带数字，如：CMDB、Automation、APP360、VideoMon）
+    code: rs-ssoLogin
+    lower-code: rs-ssoLogin
+    # 应用中文名称
+    name: rs-ssoLogin
+    # 描述信息
+    description:
+      - 单点登陆
+      - demoApp
+    #权限
+    auth-codes:
+      - code: test
+        name: test
+        nameCN: 任务分配
+        parentCode:
+    security:
+      enabled: false
+      # 需要验证登录的地址
+      validation-path: /rs-ssoLogin/frontapi/v1/**
+      #不需要验证登录地址
+      ineffectiveness-path: /, /rs-ssoLogin/,/static/**, /ws,json/**,/tenant/**, /frontend/**, /actuator/**,/metrics/**, /h2/**, /actuator/health, /favicon.ico,/test/hello,/v2/api-docs,/webjars/**,/rs-ssoLogin/frontapi/v1/app/log,/null/swagger-resources/**,/swagger-resources/**,/swagger-resources,/swagger-ui.html,/rs-ssoLogin/frontapi/v1/audit/approve,/rs-ssoLogin/frontapi/v1/resources/save,/rs-ssoLogin/frontapi/v1/resources/hosts
+  module:
+    # Module config YAML
+    # 产品名称
+    product: ${biz.app.code}
+    # 模块中文名称
+    name: ${biz.app.lower-code}
+    # 版本信息，与产品版本保持一致
+    version: 2.0.18.0
+    # 模块描述信息
+    description:
+      - 应用主模块
+      - appMain
+    #启动类
+    main-class: com.uyun.rs.StartApplication
+    # 当前支持 [main, compute, normal] 三个枚举值
+    # main：产品主模块，运维管理平台将以此模块作为安装切点进行依赖分析并完成所在产品的安装，每个产品只有一个main模块，一般为nginx或web前端
+    # compute：计算模块
+    # normal：常规模块
+    type: main
+    # 是否支持扩容，默认为true（可选）
+    scalable: true
+    # 是否需要Platform nginx进行方向代理，一般为nginx或web前端所在模块
+    enable_reverse_proxy:
+      upstream: |
+        upstream ${biz.app.lower-code} {
+        <#list hosts as host>
+          # 在此处追加对应Server配置，修改API接口
+          server ${host.ip}:${server.port};
+        </#list>
+           check interval=5000 rise=2 fall=3 timeout=5000 type=http;
+           check_http_send "GET /actuator/health HTTP/1.0\r\n\r\n";
+           check_http_expect_alive http_2xx;
+        }
+        upstream ${biz.app.lower-code}-api {
+        <#list hosts as host>
+          # 在此处追加对应Server配置，修改API接口
+          server ${host.ip}:${server.port};
+        </#list>
+        }
+      location: |
+        location /${biz.app.lower-code}/ {
+          proxy_pass http://${biz.app.lower-code}/;
+        }
+        location /${biz.app.lower-code}/frontapi/v1 {
+          proxy_pass http://${biz.app.lower-code}-api;
+        }
+        location /${biz.app.lower-code}/openapi/v1 {
+          proxy_pass http://${biz.app.lower-code}-api;
+        }
+    firewall_port: ${server.port},7601
+    # 模块支持的操作（可选），常见操作：start,stop,upgrade,uninstall,download_log
+    # 有些模块可能不具备 start、stop 等操作，这时可只配支持的操作，例如：platform-jdk，只配 uninstall 就可以了。
+    support_opts: start,stop,upgrade,uninstall,download_log
+
+    database:
+      account:
+        - type: mysql
+          schema: ${biz.app.lower-code}
+          username: ${biz.app.lower-code}
+
+    installation:
+      install:
+        cmd: install.sh
+
+    # 依赖信息，该应用依赖的其他模块，包括DB、中间件等（可为空）
+    dependencies:
+      - module: platform-jdk
+        version: 2.0.0.0
+      - module: platform-mysql
+        version: 2.0.0.0
+      - module: platform-apollo-adminservice
+        version: 2.0.0.0
+      - module: platform-apollo-portal
+        version: 2.0.0.0
+      - module: platform-apollo-configservice
+        version: 2.0.0.0
+      - module: platform-tenant
+        version: 2.0.17.0
+
+    # 此处修改，每次重启后生效，可以在omp界面进行修改，以界面修改为准。
+    parameters:
+      # 启动参数，该处声明的参数将在模块安装成功、启动之前由 OMP 调用 command 中的 config.sh 脚本配置到启停管理脚本中
+      bootstrap:
+        - key: jvm                                                                                 # 参数key
+          val: -Xmx2048m -Xms2048m -Xss512K -XX:MaxMetaspaceSize=256m                               # 默认值
+
+    # 运行参数
+    runtime_params:
+      # cpu核数
+      cpu: 4
+      # 最大运行内存（unit: M）
+      mem: 2048
+      # 所需磁盘空间（unit: G）
+      disk: 50
+    #REST API  metrics_base_url 配置
+    web_config:
+      metrics_base_url: 'http://${host.ip}:${server.port}/metrics'
+
+# Spring 公共配置
+spring:
+  application:
+    name: ${biz.app.lower-code}
+  profiles:
+    active: dev
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    maxActive: 20
+    initialSize: 1
+    maxWait: 60000
+    minIdle: 1
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: select 'x'
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxOpenPreparedStatements: 20
+  resources:
+    static-locations: file:../web/
+  mvc:
+    static-path-pattern: /**
+    throw-exception-if-no-handler-found: true
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
+
+
+
+#配置默认命名，空间
+whale:
+  distributed:
+    config:
+      app:
+        id: ${biz.app.lower-code}
+      server:
+        url: http://10.1.58.230:7546
+      namespaces: common.properties,${biz.app.lower-code}.yml
+      environment: PRO
+      bootstrap:
+        enabled: true
+        eagerLoad:
+          enabled: true
+        autoUpdateInjectedSpringProperties: false
+
+com:
+  alibaba:
+    metrics:
+      http_server:
+        start: false
